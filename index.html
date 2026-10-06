@@ -1,0 +1,3888 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Smart Face Skin Recognition</title>
+
+
+<!-- =====================================================
+     MEDIAPIPE
+===================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+
+
+
+
+<style>
+
+/* =====================================================
+   RESET
+===================================================== */
+
+*{
+    box-sizing:border-box;
+}
+
+
+/* =====================================================
+   BODY
+===================================================== */
+
+body{
+
+    margin:0;
+
+    font-family:Arial,sans-serif;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eef7ff,
+            #f8fbff
+        );
+
+    color:#18324a;
+
+}
+
+
+/* =====================================================
+   CONTAINER
+===================================================== */
+
+.container{
+
+    max-width:1000px;
+
+    margin:auto;
+
+    padding:25px;
+
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+header{
+
+    text-align:center;
+
+    margin-bottom:22px;
+
+}
+
+
+header h1{
+
+    margin:5px 0;
+
+    font-size:32px;
+
+}
+
+
+header p{
+
+    margin:5px;
+
+    color:#607d95;
+
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.card{
+
+    background:white;
+
+    border-radius:22px;
+
+    padding:22px;
+
+    box-shadow:
+        0 10px 30px
+        rgba(35,75,110,.12);
+
+    margin-bottom:20px;
+
+}
+
+
+/* =====================================================
+   CAMERA
+===================================================== */
+
+.camera-wrap{
+
+    position:relative;
+
+    max-width:720px;
+
+    margin:auto;
+
+    overflow:hidden;
+
+    border-radius:20px;
+
+    background:#101820;
+
+    aspect-ratio:16/10;
+
+}
+
+
+video{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+    display:block;
+
+    transform:scaleX(-1);
+
+}
+
+
+#overlay{
+
+    position:absolute;
+
+    inset:0;
+
+    width:100%;
+
+    height:100%;
+
+    transform:scaleX(-1);
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.status{
+
+    text-align:center;
+
+    margin:15px 0;
+
+    font-weight:bold;
+
+}
+
+
+/* =====================================================
+   BUTTON
+===================================================== */
+
+.buttons{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:10px;
+
+    width:100%;
+
+    margin-top:15px;
+
+}
+
+
+button{
+
+    border:0;
+
+    border-radius:12px;
+
+    padding:12px 15px;
+
+    margin:0;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:bold;
+
+    background:#1677c8;
+
+    color:white;
+
+    flex:1;
+
+    max-width:200px;
+
+    min-width:0;
+
+    white-space:nowrap;
+
+}
+
+
+button.secondary{
+
+    background:#607d95;
+
+}
+
+
+button:disabled{
+
+    opacity:.5;
+
+    cursor:not-allowed;
+
+}
+
+
+/* =====================================================
+   RESULT
+===================================================== */
+
+.result{
+
+    display:none;
+
+}
+
+
+/* =====================================================
+   GRID
+===================================================== */
+
+.grid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(3,1fr);
+
+    gap:14px;
+
+}
+
+
+/* =====================================================
+   BOX
+===================================================== */
+
+.box{
+
+    background:#f4f9fd;
+
+    border-radius:15px;
+
+    padding:18px;
+
+    text-align:center;
+
+}
+
+
+.box h3{
+
+    margin:5px 0 10px;
+
+}
+
+
+.big{
+
+    font-size:32px;
+
+    font-weight:bold;
+
+}
+
+
+/* =====================================================
+   PROGRESS BAR
+===================================================== */
+
+.bar{
+
+    height:12px;
+
+    background:#dce8f1;
+
+    border-radius:10px;
+
+    overflow:hidden;
+
+}
+
+
+.fill{
+
+    height:100%;
+
+    width:0%;
+
+    background:#1677c8;
+
+    transition:width .7s;
+
+}
+
+
+/* =====================================================
+   CONDITION
+===================================================== */
+
+.condition-list{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(5,1fr);
+
+    gap:10px;
+
+    margin:18px 0 4px;
+
+}
+
+
+.condition-item{
+
+    background:#f4f9fd;
+
+    border:2px solid transparent;
+
+    border-radius:14px;
+
+    padding:12px 8px;
+
+    text-align:center;
+
+    font-size:13px;
+
+    font-weight:bold;
+
+    transition:.25s;
+
+}
+
+
+.condition-item.active{
+
+    border-color:#1677c8;
+
+    background:#e8f4ff;
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 5px 15px
+        rgba(22,119,200,.15);
+
+}
+
+
+.condition-item span{
+
+    display:block;
+
+    font-size:20px;
+
+    margin-bottom:5px;
+
+}
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+.message{
+
+    margin-top:15px;
+
+    padding:17px;
+
+    background:#eef7ff;
+
+    border-radius:14px;
+
+    line-height:1.6;
+
+}
+
+
+.small{
+
+    text-align:center;
+
+    color:#71879a;
+
+    font-size:13px;
+
+}
+
+
+.analysis-info{
+
+    margin-top:12px;
+
+    padding:12px;
+
+    border-radius:12px;
+
+    background:#fff8e6;
+
+    color:#765b00;
+
+    font-size:13px;
+
+    text-align:center;
+
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+button{
+
+        flex:0 1 150px;
+
+    }
+
+
+@media(max-width:700px){
+
+    button{
+        flex:0 1 150px;
+    }
+
+    .condition-list{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+    header h1{
+        font-size:25px;
+    }
+
+}
+
+
+/* =====================================================
+   SARAN PERAWATAN KULIT
+===================================================== */
+
+
+
+.advice-section h3{
+    margin:0 0 6px;
+    text-align:center;
+    color:#18324a;
+}
+
+
+
+.advice-table-wrap{
+    overflow-x:auto;
+    border-radius:14px;
+    border:1px solid #dce8f1;
+}
+
+.advice-table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:720px;
+    background:#fff;
+}
+
+.advice-table th{
+    background:#1677c8;
+    color:#fff;
+    padding:12px;
+    text-align:left;
+    font-size:14px;
+}
+
+.advice-table td{
+    padding:12px;
+    border-bottom:1px solid #e7eef4;
+    vertical-align:top;
+    font-size:13px;
+    line-height:1.5;
+}
+
+.advice-table tr:last-child td{
+    border-bottom:0;
+}
+
+.advice-table tr.active{
+    background:#e8f4ff;
+    box-shadow:inset 4px 0 0 #1677c8;
+}
+
+.advice-table .range{
+    white-space:nowrap;
+    font-weight:bold;
+    color:#1677c8;
+}
+
+.final-advice{
+    margin-top:15px;
+    padding:16px;
+    border-radius:14px;
+    background:#eef7ff;
+    border:1px solid #d5eafa;
+}
+
+.final-advice-title{
+    margin:0 0 7px;
+    font-weight:bold;
+    color:#1677c8;
+}
+
+.final-advice-text{
+    margin:0;
+    line-height:1.6;
+}
+
+}
+
+
+/* =====================================================
+   REKOMENDASI PERAWATAN - SATU HASIL
+===================================================== */
+
+.recommendation-card{
+    margin-top:18px;
+    padding:20px;
+    border-radius:16px;
+    background:#eef7ff;
+    border:1px solid #d4e9f8;
+}
+
+.recommendation-card h3{
+    margin:0 0 5px;
+    text-align:center;
+    color:#1677c8;
+}
+
+.recommendation-condition{
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+    margin:8px 0 16px;
+    color:#18324a;
+}
+
+.recommendation-box{
+    background:white;
+    border-radius:13px;
+    padding:15px;
+}
+
+.recommendation-box h4{
+    margin:0 0 8px;
+    color:#18324a;
+}
+
+.recommendation-box p{
+    margin:0;
+    line-height:1.6;
+    font-size:14px;
+}
+
+.product-list{
+    margin:0;
+    padding-left:20px;
+    line-height:1.8;
+    font-size:14px;
+}
+
+.recommendation-note{
+    margin-top:13px;
+    font-size:12px;
+    color:#607d95;
+    text-align:center;
+}
+
+
+/* =====================================================
+   CAMERA FINAL UI
+===================================================== */
+
+.camera-wrap{
+    position:relative;
+    width:100%;
+    max-width:780px;
+    margin:0 auto;
+    overflow:hidden;
+    border-radius:20px;
+    background:#101820;
+    aspect-ratio:16/10;
+}
+
+.camera-wrap video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    transform:scaleX(-1);
+}
+
+#overlay{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    transform:scaleX(-1);
+}
+
+.status{
+    min-height:24px;
+    text-align:center;
+    margin:15px 0 12px;
+    font-weight:700;
+    font-size:16px;
+}
+
+.buttons{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    width:100%;
+    margin-top:10px;
+}
+
+.buttons button{
+    flex:0 1 200px;
+    min-height:46px;
+}
+
+.small{
+    text-align:center;
+    color:#607d95;
+    margin:12px 0 0;
+    font-size:13px;
+}
+
+
+/* =====================================================
+   SHOPPING CART & PRODUCTS
+===================================================== */
+
+.product-recommendations{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+    margin-top:14px;
+}
+
+.product-card{
+    background:#fff;
+    border:1px solid #d9e8f5;
+    border-radius:14px;
+    padding:15px;
+    box-shadow:0 4px 12px rgba(30,80,120,.06);
+}
+
+.product-card h4{
+    margin:0 0 7px;
+    color:#173b5c;
+    font-size:16px;
+}
+
+.product-card .product-type{
+    display:inline-block;
+    font-size:11px;
+    color:#1677c8;
+    background:#eaf5ff;
+    padding:4px 8px;
+    border-radius:20px;
+    margin-bottom:9px;
+}
+
+.product-card .product-price{
+    font-weight:700;
+    color:#1677c8;
+    margin:8px 0 12px;
+}
+
+.product-card button{
+    width:100%;
+    border:0;
+    border-radius:9px;
+    padding:10px;
+    background:#1677c8;
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.product-card button:hover{
+    background:#0d67b0;
+}
+
+.cart-section{
+    margin-top:18px;
+    padding:20px;
+    background:#f5faff;
+    border:1px solid #d5e8f7;
+    border-radius:16px;
+}
+
+.cart-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    margin-bottom:15px;
+}
+
+.cart-header h3{
+    margin:0 0 4px;
+    color:#173b5c;
+}
+
+.cart-header p{
+    margin:0;
+    color:#607d95;
+    font-size:13px;
+}
+
+.cart-count{
+    min-width:36px;
+    height:36px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#1677c8;
+    color:white;
+    font-weight:700;
+}
+
+.cart-items{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+}
+
+.empty-cart{
+    padding:18px;
+    text-align:center;
+    color:#71879a;
+    background:#fff;
+    border-radius:12px;
+}
+
+.cart-item{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    align-items:center;
+    gap:12px;
+    padding:12px;
+    background:#fff;
+    border-radius:12px;
+    border:1px solid #e0ebf3;
+}
+
+.cart-item-name{
+    font-weight:700;
+    color:#173b5c;
+}
+
+.cart-item-price{
+    color:#1677c8;
+    font-weight:700;
+}
+
+.qty-controls{
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+.qty-controls button{
+    width:28px;
+    height:28px;
+    border:0;
+    border-radius:7px;
+    background:#eaf5ff;
+    color:#1677c8;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.cart-summary{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:15px;
+    margin-top:15px;
+    border-top:1px solid #d9e8f5;
+    color:#173b5c;
+}
+
+.cart-summary strong{
+    font-size:20px;
+    color:#1677c8;
+}
+
+.checkout-btn{
+    width:100%;
+    margin-top:14px;
+    padding:13px;
+    border:0;
+    border-radius:10px;
+    background:#20a464;
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.checkout-btn:disabled{
+    background:#b9c8d3;
+    cursor:not-allowed;
+}
+.checkout-note{
+    margin:10px 0 0;
+    text-align:center;
+    color:#607d95;
+    font-size:12px;
+    line-height:1.5;
+}
+
+@media(max-width:900px){
+    .product-recommendations{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+@media(max-width:700px){
+    .product-recommendations{
+        grid-template-columns:1fr;
+    }
+
+    .cart-item{
+        grid-template-columns:1fr;
+    }
+}
+
+
+/* FINAL CLASSIFICATION TABLE */
+
+.detected-classification{
+    margin:18px 0;
+    padding:18px;
+    background:#f8fbff;
+    border:1px solid #d8e8f5;
+    border-radius:16px;
+}
+
+.detected-classification h3{
+    margin:0 0 14px;
+    color:#173b5c;
+}
+
+.table-wrap{
+    width:100%;
+    overflow-x:auto;
+}
+
+.skin-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    overflow:hidden;
+    border:1px solid #d8e4ee;
+    border-radius:14px;
+    background:#fff;
+    font-size:14px;
+}
+
+.skin-table th{
+    background:#1677c8;
+    color:#fff;
+    padding:12px 14px;
+    text-align:left;
+    white-space:nowrap;
+}
+
+.skin-table td{
+    padding:12px 14px;
+    border-top:1px solid #e1e9ef;
+    color:#17324a;
+    vertical-align:top;
+}
+
+.skin-table tr.selected{
+    background:#e8f5ff;
+    font-weight:600;
+    box-shadow:inset 4px 0 0 #1677c8;
+}
+
+.product-actions{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+}
+
+.product-actions button{
+    flex:1;
+    border:0;
+    border-radius:9px;
+    padding:10px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.add-cart-btn{
+    background:#1677c8;
+    color:#fff;
+}
+
+.buy-now-btn{
+    background:#20a464;
+    color:#fff;
+}
+
+.product-actions button:hover{
+    opacity:.9;
+}
+
+.purchase-message{
+    margin-top:12px;
+    padding:12px;
+    border-radius:10px;
+    background:#eaf8f0;
+    color:#176b42;
+    display:none;
+    font-weight:600;
+}
+
+@media(max-width:800px){
+    .skin-table{
+        min-width:760px;
+    }
+}
+
+
+
+/* =====================================================
+   FINAL PRODUCT + CART UI
+===================================================== */
+.recommendation-condition{
+    display:inline-block;
+    margin:6px 0 14px;
+    padding:8px 14px;
+    border-radius:999px;
+    background:#e8f4ff;
+    color:#126bb4;
+    font-weight:700;
+}
+.add-all-btn{
+    width:100%;
+    margin-top:14px;
+    border:0;
+    border-radius:10px;
+    padding:12px 16px;
+    background:#1677c8;
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+.add-all-btn:hover{opacity:.9}
+.cart-condition{
+    margin-top:6px;
+    font-size:13px;
+    color:#1677c8;
+    font-weight:700;
+}
+.cart-item{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    gap:14px;
+    align-items:center;
+    padding:12px 0;
+    border-bottom:1px solid #e6edf3;
+}
+.cart-item-name{font-weight:700;color:#17324a}
+.cart-item-price{font-size:13px;color:#668096;margin-top:3px}
+.qty-controls{display:flex;align-items:center;gap:10px}
+.qty-controls button{
+    width:30px;height:30px;border:0;border-radius:7px;
+    background:#e8f4ff;color:#1677c8;font-weight:800;cursor:pointer;
+}
+.product-card{
+    background:#fff;
+    border:1px solid #dce8f1;
+    border-radius:14px;
+    padding:15px;
+    box-shadow:0 3px 12px rgba(20,70,110,.06);
+}
+.product-card h4{margin:7px 0;color:#17324a;line-height:1.4}
+.product-type{font-size:12px;color:#1677c8;font-weight:700}
+.product-price{font-weight:800;color:#17324a;margin-bottom:6px}
+.product-actions{display:flex;gap:8px}
+.product-actions button{
+    flex:1;border:0;border-radius:9px;padding:10px;cursor:pointer;font-weight:700;
+}
+@media(max-width:700px){
+    .cart-item{grid-template-columns:1fr}
+}
+
+
+/* =====================================================
+   MOBILE / HP FIX
+===================================================== */
+@media(max-width:700px){
+    .container{padding:12px;}
+    .card{padding:15px;border-radius:16px;}
+    header h1{font-size:22px;line-height:1.25;}
+    header p{font-size:13px;}
+    .camera-wrap{aspect-ratio:3/4;max-width:100%;}
+    .buttons{display:grid !important;grid-template-columns:1fr;gap:9px !important;}
+    .buttons button{width:100%;min-height:46px;flex:none !important;}
+    .product-actions{flex-direction:column;}
+    .product-actions button{width:100%;min-height:44px;}
+    .checkout-btn{font-size:14px;min-height:48px;}
+    .qty-controls{justify-content:flex-end;}
+    .cart-item{padding:12px !important;}
+    .cart-item-name{font-size:14px;}
+    .skin-table{font-size:12px;}
+}
+.mobile-help{font-size:12px;color:#607d95;margin:7px 0 0;line-height:1.45;}
+
+</style>
+
+</head>
+
+
+
+<body>
+
+
+<div class="container">
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+    <h1>
+        🔬 Smart Face Skin Recognition
+    </h1>
+
+    <p>
+        Analisis kondisi kulit wajah menggunakan kamera
+    </p>
+
+</header>
+
+
+
+<!-- =====================================================
+     CAMERA CARD
+===================================================== -->
+
+<div class="card">
+
+
+    <div class="camera-wrap">
+
+        <video
+            id="video"
+            autoplay
+            muted
+            playsinline
+            width="1280"
+            height="720">
+        </video>
+
+
+        <canvas
+            id="overlay">
+        </canvas>
+
+    </div>
+
+
+
+    <div
+        id="status"
+        class="status">
+
+        Kamera belum aktif
+
+    </div>
+
+
+
+    <!-- =================================================
+         BUTTON
+    ================================================= -->
+
+    <div class="buttons">
+
+
+        <button
+            id="startBtn">
+
+            📷 Aktifkan Kamera
+
+        </button>
+
+
+        <button
+            id="captureBtn"
+            disabled>
+
+            🔍 Analisis Kulit
+
+        </button>
+
+
+        <button
+            id="stopBtn"
+            class="secondary"
+            disabled>
+
+            ⏹ Matikan Kamera
+
+        </button>
+
+
+    </div>
+    <p class="small">
+        Izinkan akses kamera ketika browser meminta permission.
+        Untuk HP dan laptop, buka web melalui alamat HTTPS.
+    </p>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     RESULT
+===================================================== -->
+
+<div
+    id="result"
+    class="card">
+
+
+    <h2>
+        📊 Hasil Analisis
+    </h2>
+
+
+
+    <div class="grid">
+
+
+        <!-- KONDISI -->
+
+        <div class="box">
+
+            <h3>
+                Kondisi Kulit
+            </h3>
+
+            <div
+                id="condition"
+                class="big">
+
+                -
+
+            </div>
+
+        </div>
+
+
+
+        <!-- SKOR -->
+
+        <div class="box">
+
+            <h3>
+                Skor Kulit
+            </h3>
+
+            <div
+                id="score"
+                class="big">
+
+                -
+
+            </div>
+
+
+            <div class="bar">
+
+                <div
+                    id="scoreBar"
+                    class="fill">
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- CONFIDENCE -->
+
+        <div class="box">
+
+            <h3>
+                Confidence
+            </h3>
+
+
+            <div
+                id="confidence"
+                class="big">
+
+                -
+
+            </div>
+
+
+            <div class="bar">
+
+                <div
+                    id="confidenceBar"
+                    class="fill">
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =================================================
+         KATEGORI
+    ================================================= -->
+
+    <h3
+        style="
+            margin:20px 0 8px;
+            text-align:center;
+        ">
+
+        Kategori Kondisi Kulit
+
+    </h3>
+
+
+
+    <div class="condition-list">
+
+
+        <div
+            class="condition-item"
+            data-condition="Beruntusan">
+
+            <span>
+                🔹
+            </span>
+
+            Beruntusan
+
+        </div>
+
+
+
+        <div
+            class="condition-item"
+            data-condition="Jerawat parah">
+
+            <span>
+                🔴
+            </span>
+
+            Jerawat parah
+
+        </div>
+
+
+
+        <div
+            class="condition-item"
+            data-condition="Normal">
+
+            <span>
+                🟢
+            </span>
+
+            Normal
+
+        </div>
+
+
+
+        <div
+            class="condition-item"
+            data-condition="Kering">
+
+            <span>
+                💧
+            </span>
+
+            Kering
+
+        </div>
+
+
+
+        <div
+            class="condition-item"
+            data-condition="Berminyak">
+
+            <span>
+                ✨
+            </span>
+
+            Berminyak
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =================================================
+         RESPONSE
+    ================================================= -->
+
+    <div class="message">
+
+
+        <b>
+            💬 Respon Sistem
+        </b>
+
+
+        <p id="response">
+            -
+        </p>
+
+
+        <p class="small">
+
+            Hasil ini merupakan analisis
+            visual/demo dan bukan diagnosis medis.
+
+        </p>
+
+
+    </div>
+
+
+<div id="reanalyzeArea" style="display:none; margin:16px 0;">
+    <button id="reanalyzeBtn" type="button"
+        style="border:0; border-radius:10px; padding:12px 20px;
+        background:#1677c8; color:#fff; font-weight:700; cursor:pointer;">
+        🔄 Analisis Kulit Ulang
+    </button>
+</div>
+
+<div class="detected-classification" id="detectedClassification" style="display:none;">
+
+    <h3>📋 Klasifikasi Kondisi Kulit</h3>
+
+    <div class="table-wrap">
+        <table class="skin-table">
+            <thead>
+                <tr>
+                    <th>Kondisi</th>
+                    <th>Skin Score</th>
+                    <th>Ciri</th>
+                    <th>Fokus Perawatan</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr id="classRowNormal">
+                    <td>Normal</td>
+                    <td>80–100</td>
+                    <td>Seimbang, minyak optimal</td>
+                    <td>Pertahankan kondisi kulit, pelembap + sunscreen</td>
+                </tr>
+
+                <tr id="classRowBerminyak">
+                    <td>Berminyak</td>
+                    <td>60–79</td>
+                    <td>Sebum berlebih, wajah cenderung mengilap</td>
+                    <td>Kontrol sebum, niacinamide, gel moisturizer + sunscreen</td>
+                </tr>
+
+                <tr id="classRowKering">
+                    <td>Kering</td>
+                    <td>40–59</td>
+                    <td>Kelembapan rendah, rentan sensitif</td>
+                    <td>Hydration, hyaluronic acid, ceramide + pelembap</td>
+                </tr>
+
+                <tr id="classRowBeruntusan">
+                    <td>Beruntusan</td>
+                    <td>30–39</td>
+                    <td>Bintik kecil atau tekstur tidak merata</td>
+                    <td>Salicylic acid secara terukur + produk lembut</td>
+                </tr>
+
+                <tr id="classRowJerawat parah">
+                    <td>Jerawat parah</td>
+                    <td>0–29</td>
+                    <td>Kemerahan atau lesi jerawat lebih menonjol</td>
+                    <td>Konsultasi dokter kulit bila berat atau menetap</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<div class="recommendation-card">
+
+    <h3>🛍️ Produk yang Cocok</h3>
+
+    <div
+        id="recommendationCondition"
+        class="recommendation-condition">
+        Kondisi kulit: -
+    </div>
+
+    <div class="recommendation-box">
+
+        <p id="recommendationAdvice">
+            Lakukan analisis kulit untuk melihat produk yang sesuai.
+        </p>
+
+        <div id="productRecommendations" class="product-recommendations"></div>
+        <button
+            type="button"
+            id="addRecommendedBtn"
+            class="add-all-btn">
+            🛒 Masukkan Semua Produk Rekomendasi ke Keranjang
+        </button>
+
+    </div>
+
+    <p class="recommendation-note">
+        Rekomendasi berdasarkan hasil klasifikasi visual dan bukan diagnosis medis.
+    
+            <br>
+            Nama produk menggunakan produk nyata; harga katalog di sistem ini adalah harga simulasi dan dapat berbeda dari harga toko.
+            </p>
+
+</div>
+
+
+
+<div class="cart-section" id="cartSection">
+
+    <div class="cart-header">
+        <div>
+            <h3>🛒 Keranjang Pembelian</h3>
+            <p>Pilih produk yang sesuai dengan hasil deteksi kulit Anda.</p>
+        </div>
+
+        <div class="cart-count" id="cartCount">0</div>
+        <div id="cartCondition" class="cart-condition">
+            Belum ada hasil klasifikasi.
+        </div>
+    </div>
+
+    <div id="cartItems" class="cart-items">
+        <div class="empty-cart">
+            Keranjang masih kosong.
+        </div>
+    </div>
+
+    
+    <div id="purchaseMessage" class="purchase-message"></div>
+
+<div class="cart-summary">
+        <span>Total</span>
+        <strong id="cartTotal">Rp0</strong>
+    </div>
+
+    <button
+        type="button"
+        class="checkout-btn"
+        id="checkoutBtn"
+        disabled>
+        📲 Kirim Pesanan ke WhatsApp Penjual
+    </button>
+
+    <p class="checkout-note">
+        Setelah checkout, pesanan dicatat ke riwayat dan detailnya
+        dikirim ke WhatsApp penjual.
+    </p>
+
+</div>
+
+
+<style>
+.history-section{margin-top:20px;padding:20px;background:#fff;border:1px solid #d8e8f5;border-radius:16px}.history-table-wrap{overflow:auto}.history-table{width:100%;min-width:820px;border-collapse:collapse;font-size:13px}.history-table th{background:#173b5c;color:#fff;padding:10px;text-align:left}.history-table td{padding:10px;border-bottom:1px solid #e5edf3;vertical-align:top}.history-empty{text-align:center;padding:18px;color:#71879a}.history-actions{display:flex;gap:8px;margin-top:12px}.history-actions button{flex:0 1 180px}.status-badge{padding:4px 8px;border-radius:20px;background:#eaf8f0;color:#176b42;font-weight:700}.history-product{line-height:1.5}
+</style>
+<div class="history-section" id="customerHistorySection">
+<h3 style="margin-top:0">📋 RIWAYAT PEMBELIAN CUSTOMER</h3>
+<p class="small" style="text-align:left">Setiap checkout yang berhasil dicatat sebagai <b>1 riwayat</b>. Riwayat lama tidak ditindih; pembelian customer berikutnya ditambahkan sebagai baris baru.</p>
+<div class="history-table-wrap"><table class="history-table"><thead><tr><th>No</th><th>ID Customer</th><th>Waktu</th><th>Produk</th><th>Jumlah</th><th>Total</th><th>Status</th></tr></thead><tbody id="historyBody"></tbody></table></div>
+<div class="history-actions"><button type="button" class="secondary" id="clearHistoryBtn">🗑️ Hapus Riwayat</button></div>
+</div>
+
+<div class="analysis-info">
+
+        ℹ️ Sistem menganalisis karakteristik
+        visual sederhana dari area wajah
+        yang terdeteksi.
+
+    </div>
+
+
+</div>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     CANVAS ANALISIS
+===================================================== -->
+
+<canvas
+    id="analysisCanvas"
+    style="display:none;">
+</canvas>
+
+
+
+<script>
+
+
+/* =====================================================
+   RIWAYAT PEMBELIAN CUSTOMER
+   1 checkout = 1 baris riwayat.
+   Riwayat lama selalu dipertahankan.
+===================================================== */
+const CLOUD_API_URL = "";
+const HISTORY_KEY = "smartSkinPurchaseHistory_v3";
+const CUSTOMER_ID_KEY = "smartSkinCustomerId_v1";
+
+/* =====================================================
+   KONTAK PENJUAL
+   NOMOR WHATSAPP PENJUAL SUDAH DITETAPKAN
+===================================================== */
+const SELLER_WHATSAPP = "62895395328529";
+
+function getSellerWhatsApp(){
+    return SELLER_WHATSAPP;
+}
+
+let checkoutProcessing = false;
+
+function getCustomerId(){
+    let id = localStorage.getItem(CUSTOMER_ID_KEY);
+    if(!id){
+        id = "CUS-" + Date.now().toString(36).toUpperCase() + "-" + Math.random().toString(36).slice(2,7).toUpperCase();
+        localStorage.setItem(CUSTOMER_ID_KEY,id);
+    }
+    return id;
+}
+
+async function savePurchaseHistory(extra={}){
+    const record={
+        id:"PUR-"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase(),
+        customerId:getCustomerId(),
+        time:new Date().toISOString(),
+        activity:"Pembelian",
+        ...extra
+    };
+
+    if(CLOUD_API_URL){
+        try{
+            await fetch(CLOUD_API_URL,{
+                method:"POST",
+                mode:"cors",
+                headers:{"Content-Type":"text/plain;charset=utf-8"},
+                body:JSON.stringify({action:"save",record})
+            });
+            await loadPurchaseHistory();
+            return record;
+        }catch(error){
+            console.warn("Database online gagal, memakai penyimpanan lokal.",error);
+        }
+    }
+
+    const rows=JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]");
+    // Selalu APPEND. Tidak pernah mengganti/menindih baris lama.
+    rows.push(record);
+    localStorage.setItem(HISTORY_KEY,JSON.stringify(rows));
+    renderPurchaseHistory(rows);
+    return record;
+}
+
+async function loadPurchaseHistory(){
+    if(!CLOUD_API_URL){
+        renderPurchaseHistory(JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]"));
+        return;
+    }
+    try{
+        const response=await fetch(CLOUD_API_URL+"?action=list",{cache:"no-store"});
+        const data=await response.json();
+        const rows=Array.isArray(data)?data:(data.records||[]);
+        // Jika backend lama masih memiliki log analisis/akses, jangan tampilkan.
+        renderPurchaseHistory(rows.filter(r=>r.activity==="Pembelian"));
+    }catch(error){
+        console.warn("Tidak dapat mengambil riwayat online.",error);
+        renderPurchaseHistory(JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]"));
+    }
+}
+
+function renderPurchaseHistory(rows){
+    const body=document.getElementById("historyBody");
+    if(!body)return;
+    const purchases=(rows||[]).filter(r=>r.activity==="Pembelian");
+    if(!purchases.length){
+        body.innerHTML='<tr><td colspan="7" class="history-empty">Belum ada riwayat pembelian.</td></tr>';
+        return;
+    }
+
+    body.innerHTML=purchases.map((r,index)=>{
+        const time=r.time?new Date(r.time).toLocaleString("id-ID"):"-";
+        return `<tr>
+            <td><b>${index+1}</b></td>
+            <td><b>${r.customerId||"-"}</b></td>
+            <td>${time}</td>
+            <td class="history-product">${r.products||"-"}</td>
+            <td>${r.quantity||"-"}</td>
+            <td><b>${r.total||"-"}</b></td>
+            <td><span class="status-badge">${r.status||"Pembelian tercatat"}</span></td>
+        </tr>`;
+    }).join("");
+}
+
+async function clearCloudHistory(){
+    if(!confirm("Hapus seluruh riwayat pembelian?"))return;
+    if(!CLOUD_API_URL){
+        localStorage.removeItem(HISTORY_KEY);
+        renderPurchaseHistory([]);
+        return;
+    }
+    try{
+        await fetch(CLOUD_API_URL,{
+            method:"POST",mode:"cors",
+            headers:{"Content-Type":"text/plain;charset=utf-8"},
+            body:JSON.stringify({action:"clear"})
+        });
+        await loadPurchaseHistory();
+    }catch(error){alert("Riwayat online tidak dapat dihapus.");}
+}
+
+/* =====================================================
+   ELEMENT HTML
+===================================================== */
+
+const video =
+    document.getElementById("video");
+
+
+const canvas =
+    document.getElementById("overlay");
+
+
+const ctx =
+    canvas.getContext("2d");
+
+
+const analysisCanvas =
+    document.getElementById("analysisCanvas");
+
+
+const analysisCtx =
+    analysisCanvas.getContext("2d");
+
+
+const startBtn =
+    document.getElementById("startBtn");
+
+
+const captureBtn =
+    document.getElementById("captureBtn");
+
+
+const stopBtn =
+    document.getElementById("stopBtn");
+
+
+const statusText =
+    document.getElementById("status");
+
+
+
+/* =====================================================
+   VARIABLE
+===================================================== */
+
+let stream = null;
+let analysisSourceImage = null;
+
+let detector = null;
+
+let camera = null;
+
+let faceDetected = false;
+
+let checking = false;
+
+let currentFaceBox = null;
+let detectedSkinCondition = null;
+
+
+
+/* =====================================================
+   RESPON SISTEM
+===================================================== */
+
+const skinResponses = {
+
+    "Normal":
+        "Kulit terklasifikasi normal berdasarkan karakteristik visual yang dianalisis. Pertahankan kebersihan, kelembapan, dan perlindungan sunscreen.",
+
+    "Beruntusan":
+        "Terdapat karakteristik visual berupa bintik kecil atau tekstur yang cukup terlihat. Hasil ini merupakan indikasi visual dan bukan diagnosis.",
+
+    "Jerawat parah":
+        "Terdapat karakteristik visual berupa kemerahan atau lesi yang lebih menonjol. Hasil ini merupakan indikasi visual dan bukan diagnosis medis.",
+
+    "Kering":
+        "Karakteristik visual menunjukkan kondisi yang cenderung kurang lembap. Prioritaskan hidrasi dan pelembap yang sesuai.",
+
+    "Berminyak":
+        "Karakteristik visual menunjukkan permukaan yang cenderung lebih berminyak. Fokus pada kontrol sebum tanpa menghilangkan kelembapan kulit."
+
+};
+
+
+
+/* =====================================================
+   UKURAN CANVAS
+===================================================== */
+
+function setCanvasSize(){
+
+    canvas.width =
+        video.videoWidth || 640;
+
+
+    canvas.height =
+        video.videoHeight || 400;
+
+}
+
+
+
+/* =====================================================
+   AKTIFKAN KAMERA
+===================================================== */
+
+async function startCamera(){
+
+    analysisSourceImage = null;
+
+    try{
+
+
+        if(
+            !navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia
+        ){
+
+            throw new Error(
+                "Browser tidak mendukung kamera."
+            );
+
+        }
+
+
+
+        stream =
+            await navigator.mediaDevices.getUserMedia({
+
+                video:{
+
+                    facingMode:"user",
+
+                    width:{
+                        ideal:1280
+                    },
+
+                    height:{
+                        ideal:720
+                    }
+
+                },
+
+                audio:false
+
+            });
+
+
+
+        video.srcObject =
+            stream;
+
+        faceDetected = false;
+        currentFaceBox = null;
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+
+        await new Promise(resolve => {
+
+            video.onloadedmetadata =
+                resolve;
+
+        });
+
+
+
+        await video.play();
+
+
+
+        setCanvasSize();
+
+
+
+        startBtn.disabled =
+            true;
+
+
+        captureBtn.disabled =
+            false;
+
+
+        stopBtn.disabled =
+            false;
+
+
+
+        statusText.textContent =
+            "🟡 Kamera aktif — tekan Analisis Kulit";
+
+
+        statusText.style.color =
+            "#16844a";
+
+
+
+        if(!detector){
+            initFaceDetection();
+        } else {
+            startDetectionLoop();
+        }
+
+
+    }
+
+    catch(error){
+
+
+        console.error(error);
+
+
+        const secureNote = window.isSecureContext
+            ? "Pastikan izin kamera diberikan pada browser."
+            : "Buka web melalui HTTPS agar kamera HP/laptop dapat digunakan. Jangan membuka file HTML langsung dari file://.";
+
+        statusText.innerHTML =
+            "🔴 Kamera tidak dapat digunakan.<br>" +
+            secureNote;
+
+
+        statusText.style.color =
+            "#c62828";
+
+    }
+
+}
+
+
+
+/* =====================================================
+   MATIKAN KAMERA
+===================================================== */
+
+function stopCamera(){
+
+
+    if(stream){
+
+        stream
+            .getTracks()
+            .forEach(track => {
+
+                track.stop();
+
+            });
+
+
+        stream = null;
+
+    }
+
+
+
+    stopDetectionLoop();
+
+    camera = null;
+
+
+
+    video.srcObject =
+        null;
+
+
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+
+    startBtn.disabled =
+        false;
+
+
+    captureBtn.disabled =
+        true;
+
+
+    stopBtn.disabled =
+        true;
+
+
+
+    faceDetected =
+        false;
+
+    analysisRequested =
+        false;
+
+
+    currentFaceBox =
+        null;
+
+
+
+    statusText.textContent =
+        "Kamera dimatikan";
+
+
+    statusText.style.color =
+        "#18324a";
+
+}
+
+
+
+/* =====================================================
+   MEDIA PIPE FACE DETECTION
+===================================================== */
+
+function initFaceDetection(){
+
+    if(typeof FaceDetection === "undefined"){
+
+        statusText.textContent =
+            "🔴 Library deteksi wajah gagal dimuat. Pastikan internet aktif lalu refresh halaman.";
+
+        statusText.style.color =
+            "#c62828";
+
+        return;
+
+    }
+
+    try{
+
+        detector =
+            new FaceDetection({
+
+                locateFile:(file)=>{
+
+                    return (
+                        "https://cdn.jsdelivr.net/npm/" +
+                        "@mediapipe/face_detection/" +
+                        file
+                    );
+
+                }
+
+            });
+
+        detector.setOptions({
+
+            model:"short",
+
+            minDetectionConfidence:0.5
+
+        });
+
+        detector.onResults(
+            onFaceResults
+        );
+
+        statusText.textContent =
+            "🟡 Model siap — mencari wajah...";
+
+        statusText.style.color =
+            "#d68910";
+
+        startDetectionLoop();
+
+    }
+
+    catch(error){
+
+        console.error(
+            "Gagal menginisialisasi Face Detection:",
+            error
+        );
+
+        statusText.textContent =
+            "🔴 Deteksi wajah gagal dimuat. Refresh halaman dan pastikan internet aktif.";
+
+        statusText.style.color =
+            "#c62828";
+
+    }
+
+}
+
+
+/* =====================================================
+   LOOP DETEKSI WAJAH
+===================================================== */
+
+let detectionBusy = false;
+let analysisRequested = false;
+let detectionLoopActive = false;
+
+function startDetectionLoop(){
+
+    if(detectionLoopActive){
+
+        return;
+
+    }
+
+    detectionLoopActive = true;
+
+    async function detectFrame(){
+
+        if(
+            !detectionLoopActive ||
+            !detector ||
+            !stream ||
+            video.readyState < 2
+        ){
+
+            if(detectionLoopActive){
+
+                requestAnimationFrame(
+                    detectFrame
+                );
+
+            }
+
+            return;
+
+        }
+
+        if(
+            analysisRequested &&
+            !detectionBusy &&
+            checking
+        ){
+
+            detectionBusy = true;
+
+            try{
+
+                await detector.send({
+                    image:video
+                });
+
+            }
+
+            catch(error){
+
+                console.error(
+                    "Face detection error:",
+                    error
+                );
+
+            }
+
+            finally{
+
+                detectionBusy = false;
+
+            }
+
+        }
+
+        if(detectionLoopActive){
+
+            requestAnimationFrame(
+                detectFrame
+            );
+
+        }
+
+    }
+
+    requestAnimationFrame(
+        detectFrame
+    );
+
+}
+
+
+/* =====================================================
+   STOP LOOP DETEKSI
+===================================================== */
+
+function stopDetectionLoop(){
+
+    detectionLoopActive = false;
+    detectionBusy = false;
+
+}
+
+
+/* =====================================================
+   HASIL DETEKSI WAJAH
+===================================================== */
+
+function onFaceResults(results){
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    if(
+        !results.detections ||
+        results.detections.length === 0
+    ){
+
+        faceDetected = false;
+        currentFaceBox = null;
+
+        if(analysisRequested){
+
+            statusText.textContent =
+                "🔎 Mencari wajah...";
+
+            statusText.style.color =
+                "#1677c8";
+
+        }
+
+        return;
+
+    }
+
+
+    // Pilih wajah terbesar jika kamera menangkap lebih dari satu wajah.
+    const detection =
+        results.detections
+            .slice()
+            .sort(
+                (a,b) =>
+                    (b.boundingBox.width * b.boundingBox.height) -
+                    (a.boundingBox.width * a.boundingBox.height)
+            )[0];
+
+
+    const box =
+        detection.boundingBox;
+
+
+    let x =
+        box.xCenter *
+        canvas.width -
+        (box.width *
+        canvas.width) / 2;
+
+
+    let y =
+        box.yCenter *
+        canvas.height -
+        (box.height *
+        canvas.height) / 2;
+
+
+    let w =
+        box.width *
+        canvas.width;
+
+
+    let h =
+        box.height *
+        canvas.height;
+
+
+    x = Math.max(
+        0,
+        Math.min(
+            x,
+            canvas.width - 1
+        )
+    );
+
+    y = Math.max(
+        0,
+        Math.min(
+            y,
+            canvas.height - 1
+        )
+    );
+
+    w = Math.min(
+        w,
+        canvas.width - x
+    );
+
+    h = Math.min(
+        h,
+        canvas.height - y
+    );
+
+
+    currentFaceBox = {
+        x:x,
+        y:y,
+        w:w,
+        h:h
+    };
+
+
+    faceDetected = true;
+
+
+    // Kotak hijau hanya ditampilkan ketika wajah sudah ditemukan.
+    ctx.strokeStyle =
+        "#00ff88";
+
+    ctx.lineWidth =
+        4;
+
+    ctx.strokeRect(
+        x,
+        y,
+        w,
+        h
+    );
+
+
+    // Jika user belum menekan Analisis, kamera hanya menampilkan video.
+    if(!analysisRequested){
+
+        return;
+
+    }
+
+
+    // Tahap 1: wajah berhasil ditemukan.
+    statusText.textContent =
+        "🟢 Wajah terdeteksi";
+
+    statusText.style.color =
+        "#16844a";
+
+
+    // Hentikan pencarian frame agar tidak menganalisis berkali-kali.
+    analysisRequested = false;
+    stopDetectionLoop();
+
+
+    // Tahap 2: langsung analisis frame wajah yang sudah terdeteksi.
+    const features =
+        analyzeFaceImage();
+
+
+    if(!features){
+
+        statusText.textContent =
+            "🔴 Wajah terdeteksi, tetapi area wajah belum dapat dianalisis.";
+
+        statusText.style.color =
+            "#c62828";
+
+        checking = false;
+
+        return;
+
+    }
+
+
+    const result =
+        classifySkin(
+            features
+        );
+
+
+    showResult(
+        result
+    );
+
+
+    // Tahap 3: analisis selesai.
+    statusText.textContent =
+        "✅ Analisis selesai";
+
+    statusText.style.color =
+        "#16844a";
+
+
+    checking =
+        false;
+
+}
+
+
+/* =====================================================
+   ANALISIS GAMBAR WAJAH
+===================================================== */
+
+function analyzeFaceImage(){
+
+    if(!currentFaceBox){
+        return null;
+    }
+
+    const box = currentFaceBox;
+
+    /*
+       Ambil ROI tengah wajah. Jangan gunakan seluruh bounding box
+       agar rambut, jilbab, telinga, leher, dan background lebih sedikit
+       mempengaruhi warna.
+    */
+    const x =
+        Math.max(
+            0,
+            Math.floor(box.x + box.w * 0.14)
+        );
+
+    const y =
+        Math.max(
+            0,
+            Math.floor(box.y + box.h * 0.14)
+        );
+
+    const sourceWidth = analysisSourceImage ? analysisSourceImage.naturalWidth : video.videoWidth;
+    const sourceHeight = analysisSourceImage ? analysisSourceImage.naturalHeight : video.videoHeight;
+
+    const right =
+        Math.min(
+            sourceWidth,
+            Math.ceil(box.x + box.w * 0.86)
+        );
+
+    const bottom =
+        Math.min(
+            sourceHeight,
+            Math.ceil(box.y + box.h * 0.88)
+        );
+
+    const w = right - x;
+    const h = bottom - y;
+
+    if(w < 40 || h < 40){
+        return null;
+    }
+
+    analysisCanvas.width = w;
+    analysisCanvas.height = h;
+
+    analysisCtx.drawImage(
+        analysisSourceImage || video,
+        x,
+        y,
+        w,
+        h,
+        0,
+        0,
+        w,
+        h
+    );
+
+    const imageData =
+        analysisCtx.getImageData(
+            0,
+            0,
+            w,
+            h
+        );
+
+    const data = imageData.data;
+
+    const brightnessValues = [];
+    const rednessValues = [];
+    const saturationValues = [];
+
+    let skinCount = 0;
+
+    /*
+       Dua belas kolom x sembilan baris.
+       Kita gunakan variasi antar-area, bukan sekadar warna merah absolut.
+    */
+    const rows = 9;
+    const cols = 12;
+
+    const cells = [];
+
+    for(let row = 0; row < rows; row++){
+
+        for(let col = 0; col < cols; col++){
+
+            const x0 =
+                Math.floor(col * w / cols);
+
+            const x1 =
+                Math.min(
+                    w,
+                    Math.floor((col + 1) * w / cols)
+                );
+
+            const y0 =
+                Math.floor(row * h / rows);
+
+            const y1 =
+                Math.min(
+                    h,
+                    Math.floor((row + 1) * h / rows)
+                );
+
+            let cellSkin = 0;
+            let cellRed = 0;
+            let cellBright = 0;
+            let cellSat = 0;
+
+            for(let yy = y0; yy < y1; yy += 2){
+
+                for(let xx = x0; xx < x1; xx += 2){
+
+                    const i =
+                        (yy * w + xx) * 4;
+
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+
+                    const yLum =
+                        0.299 * r +
+                        0.587 * g +
+                        0.114 * b;
+
+                    if(
+                        yLum < 25 ||
+                        yLum > 248
+                    ){
+                        continue;
+                    }
+
+                    /*
+                       Skin mask lebih longgar daripada sebelumnya.
+                       Tujuannya hanya membuang background ekstrem,
+                       bukan menganggap warna kulit tertentu sebagai jerawat.
+                    */
+                    const skinLike =
+                        r > 55 &&
+                        g > 35 &&
+                        b > 20 &&
+                        r > g * 1.03 &&
+                        r > b * 1.10;
+
+                    if(!skinLike){
+                        continue;
+                    }
+
+                    const sum =
+                        r + g + b + 1;
+
+                    /*
+                       normalizedRed mengukur rona merah relatif,
+                       sehingga warna kulit dasar tidak langsung dianggap acne.
+                    */
+                    const normalizedRed =
+                        r / sum;
+
+                    const saturation =
+                        Math.max(r,g,b) -
+                        Math.min(r,g,b);
+
+                    cellSkin++;
+                    cellRed += normalizedRed;
+                    cellBright += yLum;
+                    cellSat += saturation;
+
+                    skinCount++;
+
+                    brightnessValues.push(yLum);
+                    rednessValues.push(normalizedRed);
+                    saturationValues.push(saturation);
+
+                }
+            }
+
+            if(cellSkin >= 12){
+
+                cells.push({
+                    skin:cellSkin,
+                    red:
+                        cellRed / cellSkin,
+                    bright:
+                        cellBright / cellSkin,
+                    sat:
+                        cellSat / cellSkin
+                });
+
+            }
+
+        }
+    }
+
+    if(
+        skinCount < 500 ||
+        cells.length < 30
+    ){
+        return null;
+    }
+
+    function median(values){
+
+        const copy =
+            values
+                .slice()
+                .sort(
+                    (a,b) => a - b
+                );
+
+        const mid =
+            Math.floor(
+                copy.length / 2
+            );
+
+        if(copy.length % 2 === 0){
+            return (
+                copy[mid - 1] +
+                copy[mid]
+            ) / 2;
+        }
+
+        return copy[mid];
+    }
+
+    const medianBrightness =
+        median(brightnessValues);
+
+    const medianRed =
+        median(rednessValues);
+
+    const medianSat =
+        median(saturationValues);
+
+    /*
+       Hitung deviasi absolut dari baseline kulit.
+       Jerawat/kemerahan lokal harus menjadi outlier,
+       bukan sekadar kulit yang memang lebih merah secara keseluruhan.
+    */
+    const redDeviations =
+        cells.map(
+            cell =>
+                cell.red -
+                medianRed
+        );
+
+    const positiveRedCells =
+        cells.filter(
+            cell =>
+                (
+                    cell.red -
+                    medianRed
+                ) > 0.012
+        );
+
+    const strongRedCells =
+        cells.filter(
+            cell =>
+                (
+                    cell.red -
+                    medianRed
+                ) > 0.025
+        );
+
+    const redAreaRatio =
+        positiveRedCells.length /
+        cells.length;
+
+    const strongRedAreaRatio =
+        strongRedCells.length /
+        cells.length;
+
+    const redPeak =
+        Math.max(
+            0,
+            ...redDeviations
+        );
+
+    const meanCellBrightness =
+        cells.reduce(
+            (sum,cell) =>
+                sum + cell.bright,
+            0
+        ) /
+        cells.length;
+
+    const brightnessDeviation =
+        cells.reduce(
+            (sum,cell) =>
+                sum +
+                Math.abs(
+                    cell.bright -
+                    meanCellBrightness
+                ),
+            0
+        ) /
+        cells.length;
+
+    /*
+       Shine score: area terang yang relatif rendah saturasi,
+       terutama berguna untuk memperkirakan permukaan berminyak.
+    */
+    const shineCells =
+        cells.filter(
+            cell =>
+                cell.bright >=
+                    medianBrightness + 30 &&
+                cell.sat <=
+                    medianSat + 15
+        ).length;
+
+    const shineRatio =
+        shineCells /
+        cells.length;
+
+    /*
+       Dryness proxy: permukaan relatif gelap + variasi tekstur,
+       tetapi tetap konservatif.
+    */
+    const darkCells =
+        cells.filter(
+            cell =>
+                cell.bright <
+                medianBrightness - 22
+        ).length;
+
+    const darkRatio =
+        darkCells /
+        cells.length;
+
+    return {
+
+        brightness:
+            medianBrightness,
+
+        medianRed:
+            medianRed,
+
+        medianSat:
+            medianSat,
+
+        redAreaRatio:
+            redAreaRatio,
+
+        strongRedAreaRatio:
+            strongRedAreaRatio,
+
+        redPeak:
+            redPeak,
+
+        brightnessDeviation:
+            brightnessDeviation,
+
+        shineRatio:
+            shineRatio,
+
+        darkRatio:
+            darkRatio
+
+    };
+}
+
+
+/* =====================================================
+   STABILISASI MULTI-FRAME
+===================================================== */
+
+function collectStableFeatures(
+    frameCount = 7,
+    interval = 70
+){
+
+    return new Promise(
+        resolve => {
+
+            const samples = [];
+            let count = 0;
+
+            function takeSample(){
+
+                const feature =
+                    analyzeFaceImage();
+
+                if(feature){
+                    samples.push(feature);
+                }
+
+                count++;
+
+                if(
+                    count >=
+                    frameCount
+                ){
+
+                    if(
+                        samples.length <
+                        Math.ceil(
+                            frameCount * 0.57
+                        )
+                    ){
+                        resolve(null);
+                        return;
+                    }
+
+                    const keys = [
+                        "brightness",
+                        "medianRed",
+                        "medianSat",
+                        "redAreaRatio",
+                        "strongRedAreaRatio",
+                        "redPeak",
+                        "brightnessDeviation",
+                        "shineRatio",
+                        "darkRatio"
+                    ];
+
+                    const stable = {};
+
+                    keys.forEach(
+                        key => {
+
+                            const values =
+                                samples
+                                    .map(
+                                        item =>
+                                            item[key]
+                                    )
+                                    .filter(
+                                        Number.isFinite
+                                    );
+
+                            values.sort(
+                                (a,b) => a-b
+                            );
+
+                            const middle =
+                                Math.floor(
+                                    values.length / 2
+                                );
+
+                            stable[key] =
+                                values.length % 2 === 0
+                                    ? (
+                                        values[middle - 1] +
+                                        values[middle]
+                                      ) / 2
+                                    : values[middle];
+
+                        }
+                    );
+
+                    resolve(stable);
+                    return;
+                }
+
+                setTimeout(
+                    takeSample,
+                    interval
+                );
+            }
+
+            takeSample();
+
+        }
+    );
+
+}
+
+
+
+
+/* =====================================================
+   KLASIFIKASI
+===================================================== */
+
+function clamp01(value){
+
+    return Math.max(
+        0,
+        Math.min(
+            1,
+            value
+        )
+    );
+
+}
+
+function classifySkin(features){
+
+    if(!features){
+
+        return {
+            condition:"Normal",
+            score:90,
+            confidence:50
+        };
+
+    }
+
+    const brightness =
+        features.brightness;
+
+    const redArea =
+        features.redAreaRatio;
+
+    const strongRedArea =
+        features.strongRedAreaRatio;
+
+    const redPeak =
+        features.redPeak;
+
+    const shine =
+        features.shineRatio;
+
+    const darkRatio =
+        features.darkRatio;
+
+    const texture =
+        features.brightnessDeviation;
+
+
+    /*
+       Jerawat parah hanya boleh muncul bila ada
+       kemerahan LOKAL yang jelas dan cukup luas.
+       Warna kulit keseluruhan tidak cukup.
+    */
+    const acneArea =
+        clamp01(
+            (redArea - 0.12) / 0.28
+        );
+
+    const acneStrongArea =
+        clamp01(
+            (strongRedArea - 0.025) / 0.14
+        );
+
+    const acnePeak =
+        clamp01(
+            (redPeak - 0.018) / 0.045
+        );
+
+    const acneScore =
+        acneArea * 0.40 +
+        acneStrongArea * 0.40 +
+        acnePeak * 0.20;
+
+
+    /*
+       Beruntusan: pola kemerahan/tekstur
+       lebih tersebar tetapi tidak sekuat acne.
+    */
+    const bumpyArea =
+        clamp01(
+            (redArea - 0.05) / 0.22
+        );
+
+    const bumpyTexture =
+        clamp01(
+            (texture - 17) / 25
+        );
+
+    const bumpyPeak =
+        clamp01(
+            (redPeak - 0.010) / 0.030
+        );
+
+    const bumpyScore =
+        bumpyArea * 0.40 +
+        bumpyTexture * 0.35 +
+        bumpyPeak * 0.25;
+
+
+    /*
+       Berminyak: permukaan relatif lebih banyak
+       area terang dengan saturasi lebih rendah.
+    */
+    const oilyBrightness =
+        clamp01(
+            (brightness - 145) / 65
+        );
+
+    const oilyShine =
+        clamp01(
+            (shine - 0.08) / 0.32
+        );
+
+    const oilyScore =
+        oilyBrightness * 0.45 +
+        oilyShine * 0.55;
+
+
+    /*
+       Kering: proxy yang sangat konservatif.
+       Jangan mengubah kulit menjadi "kering" hanya karena
+       kamera sedikit gelap.
+    */
+    const dryDark =
+        clamp01(
+            (125 - brightness) / 50
+        );
+
+    const dryTexture =
+        clamp01(
+            (texture - 16) / 30
+        );
+
+    const dryArea =
+        clamp01(
+            (darkRatio - 0.15) / 0.40
+        );
+
+    const dryScore =
+        dryDark * 0.35 +
+        dryTexture * 0.30 +
+        dryArea * 0.35;
+
+
+    let condition = "Normal";
+    let score = 90;
+    let confidence = 82;
+
+
+    /*
+       Prioritas kondisi:
+       1) Acne hanya jika bukti lokal kuat.
+       2) Beruntusan jika tekstur/kemerahan sedang.
+       3) Berminyak jika shine konsisten.
+       4) Kering jika bukti cukup.
+       5) Selain itu Normal.
+    */
+    if(
+        acneScore >= 0.66 &&
+        redArea >= 0.16 &&
+        strongRedArea >= 0.045 &&
+        redPeak >= 0.022
+    ){
+
+        condition =
+            "Jerawat parah";
+
+        score =
+            Math.max(
+                0,
+                Math.min(
+                    29,
+                    Math.round(
+                        29 -
+                        acneScore * 24
+                    )
+                )
+            );
+
+        confidence =
+            Math.round(
+                75 +
+                acneScore * 18
+            );
+
+    }
+
+    else if(
+        bumpyScore >= 0.52 &&
+        redArea >= 0.07 &&
+        texture >= 19
+    ){
+
+        condition =
+            "Beruntusan";
+
+        score =
+            Math.max(
+                30,
+                Math.min(
+                    39,
+                    Math.round(
+                        39 -
+                        bumpyScore * 8
+                    )
+                )
+            );
+
+        confidence =
+            Math.round(
+                70 +
+                bumpyScore * 18
+            );
+
+    }
+
+    else if(
+        oilyScore >= 0.55 &&
+        shine >= 0.09
+    ){
+
+        condition =
+            "Berminyak";
+
+        score =
+            Math.max(
+                60,
+                Math.min(
+                    79,
+                    Math.round(
+                        60 +
+                        oilyScore * 19
+                    )
+                )
+            );
+
+        confidence =
+            Math.round(
+                68 +
+                oilyScore * 20
+            );
+
+    }
+
+    else if(
+        dryScore >= 0.58 &&
+        brightness <= 125 &&
+        darkRatio >= 0.17
+    ){
+
+        condition =
+            "Kering";
+
+        score =
+            Math.max(
+                40,
+                Math.min(
+                    59,
+                    Math.round(
+                        59 -
+                        dryScore * 18
+                    )
+                )
+            );
+
+        confidence =
+            Math.round(
+                68 +
+                dryScore * 20
+            );
+
+    }
+
+    else{
+
+        condition =
+            "Normal";
+
+        score = 90;
+
+        confidence =
+            Math.round(
+                80 +
+                (1 - acneScore) * 8
+            );
+
+    }
+
+    confidence =
+        Math.max(
+            55,
+            Math.min(
+                95,
+                confidence
+            )
+        );
+
+    return {
+        condition:condition,
+        score:score,
+        confidence:confidence
+    };
+
+}
+
+
+
+
+/* =====================================================
+   REKOMENDASI DINAMIS SESUAI KONDISI KULIT
+===================================================== */
+
+const skinRecommendations = {
+
+    "Normal":{
+        advice:"Pilihan untuk mempertahankan keseimbangan kulit dan menjaga kelembapan:",
+        products:[
+            {id:"normal-01",name:"Cetaphil Gentle Skin Cleanser",type:"Cleanser",price:85000},
+            {id:"normal-02",name:"CeraVe Hydrating Facial Cleanser",type:"Cleanser",price:150000},
+            {id:"normal-03",name:"The Originote Hyalucera Moisturizer",type:"Moisturizer",price:60000},
+            {id:"normal-04",name:"CeraVe Moisturizing Cream",type:"Moisturizer",price:175000},
+            {id:"normal-05",name:"Azarine Hydrasoothe Sunscreen Gel SPF45 PA++++",type:"Sunscreen",price:59000},
+            {id:"normal-06",name:"Skin Aqua UV Moisture Gel SPF50+ PA++++",type:"Sunscreen",price:70000},
+            {id:"normal-07",name:"SKINTIFIC 5X Ceramide Barrier Repair Moisture Gel",type:"Barrier Moisturizer",price:139000}
+        ]
+    },
+
+    "Berminyak":{
+        advice:"Pilihan untuk membantu mengontrol sebum, menjaga pori tetap bersih, dan mempertahankan hidrasi:",
+        products:[
+            {id:"oily-01",name:"The Originote Low pH Cicamide Facial Cleanser",type:"Cleanser",price:65000},
+            {id:"oily-02",name:"SOMETHINC Low pH Gentle Jelly Cleanser",type:"Cleanser",price:62100},
+            {id:"oily-03",name:"Avoskin Your Skin Bae Salicylic Acid 2% + Zinc Serum",type:"Salicylic Acid Serum",price:139000},
+            {id:"oily-04",name:"ERHA Acneact Anti Acne Serum",type:"Acne Serum",price:150000},
+            {id:"oily-05",name:"SKINTIFIC 10% Niacinamide Brightening Serum",type:"Niacinamide Serum",price:109000},
+            {id:"oily-06",name:"SKINTIFIC MSH Niacinamide Brightening Moisture Gel",type:"Gel Moisturizer",price:140000},
+            {id:"oily-07",name:"Azarine Hydrasoothe Sunscreen Gel SPF45 PA++++",type:"Sunscreen",price:59000},
+            {id:"oily-08",name:"Skin Aqua UV Moisture Gel SPF50+ PA++++",type:"Sunscreen",price:70000}
+        ]
+    },
+
+    "Kering":{
+        advice:"Pilihan untuk meningkatkan hidrasi dan membantu menjaga skin barrier:",
+        products:[
+            {id:"dry-01",name:"La Roche-Posay Toleriane Hydrating Gentle Facial Cleanser",type:"Hydrating Cleanser",price:260000},
+            {id:"dry-02",name:"Cetaphil Gentle Skin Cleanser",type:"Gentle Cleanser",price:85000},
+            {id:"dry-03",name:"Neutrogena Hydro Boost Gel Cream",type:"Moisturizer",price:180000},
+            {id:"dry-04",name:"The Originote Hyalucera Moisturizer",type:"Hydrating Moisturizer",price:60000},
+            {id:"dry-05",name:"SKINTIFIC 5X Ceramide Barrier Repair Moisture Gel",type:"Ceramide Moisturizer",price:139000},
+            {id:"dry-06",name:"CeraVe Moisturizing Cream",type:"Barrier Cream",price:175000},
+            {id:"dry-07",name:"Hyaluronic Acid Serum",type:"Hydration Serum",price:90000},
+            {id:"dry-08",name:"Azarine Hydrasoothe Sunscreen Gel SPF45 PA++++",type:"Sunscreen",price:59000}
+        ]
+    },
+
+    "Beruntusan":{
+        advice:"Pilihan untuk membantu membersihkan pori, merawat tekstur, dan menjaga skin barrier tanpa terlalu agresif:",
+        products:[
+            {id:"bumpy-01",name:"SOMETHINC Low pH Gentle Jelly Cleanser",type:"Gentle Cleanser",price:62100},
+            {id:"bumpy-02",name:"The Originote Low pH Cicamide Facial Cleanser",type:"Cleanser",price:65000},
+            {id:"bumpy-03",name:"SOMETHINC Acne Treatment 2% Salicylic Acid Serum",type:"Salicylic Acid Serum",price:125100},
+            {id:"bumpy-04",name:"Avoskin Your Skin Bae Salicylic Acid 2% + Zinc Serum",type:"Salicylic Acid Serum",price:139000},
+            {id:"bumpy-05",name:"Glad2Glow Mugwort Salicylic Acid Acne Clear Micellar Water",type:"Micellar Water",price:75000},
+            {id:"bumpy-06",name:"LABORÉ AcnePro Biome Intensive Acne Serum",type:"Acne Serum",price:145000},
+            {id:"bumpy-07",name:"SKINTIFIC 5X Ceramide Barrier Repair Moisture Gel",type:"Barrier Moisturizer",price:139000},
+            {id:"bumpy-08",name:"Azarine Hydrasoothe Sunscreen Gel SPF45 PA++++",type:"Sunscreen",price:59000}
+        ]
+    },
+
+    "Jerawat parah":{
+        advice:"Untuk kondisi yang tampak berat, utamakan basic skincare yang lembut. Produk aktif sebaiknya dipilih dengan arahan tenaga kesehatan.",
+        products:[
+            {id:"severe-01",name:"Cetaphil Gentle Skin Cleanser",type:"Gentle Cleanser",price:85000},
+            {id:"severe-02",name:"La Roche-Posay Toleriane Hydrating Gentle Facial Cleanser",type:"Gentle Cleanser",price:260000},
+            {id:"severe-03",name:"CeraVe Moisturizing Cream",type:"Barrier Moisturizer",price:175000},
+            {id:"severe-04",name:"SKINTIFIC 5X Ceramide Barrier Repair Moisture Gel",type:"Barrier Moisturizer",price:139000},
+            {id:"severe-05",name:"Azarine Hydrasoothe Sunscreen Gel SPF45 PA++++",type:"Sunscreen",price:59000},
+            {id:"severe-06",name:"ERHA Acneact Anti Acne Serum",type:"Acne Serum",price:150000},
+            {id:"severe-07",name:"LABORÉ AcnePro Biome Intensive Acne Serum",type:"Acne Serum",price:145000}
+        ]
+    }
+
+};
+
+const classificationRows = {
+    "Normal":"classRowNormal",
+    "Berminyak":"classRowBerminyak",
+    "Kering":"classRowKering",
+    "Beruntusan":"classRowBeruntusan",
+    "Jerawat parah":"classRowJerawat"
+};
+
+const shoppingCart = {};
+
+function formatRupiah(value){
+    return "Rp" + Number(value).toLocaleString("id-ID");
+}
+
+function addToCart(product){
+    if(!shoppingCart[product.id]){
+        shoppingCart[product.id] = {
+            ...product,
+            quantity:1
+        };
+    }else{
+        shoppingCart[product.id].quantity++;
+    }
+
+    renderCart();
+}
+
+function buyNow(product){
+    addToCart(product);
+
+    const message =
+        document.getElementById("purchaseMessage");
+
+    if(message){
+        message.textContent =
+            "✓ " + product.name +
+            " masuk ke keranjang. Tekan 'Kirim Pesanan ke WhatsApp Penjual' untuk memproses pesanan.";
+        message.style.display = "block";
+    }
+
+    document.getElementById("cartSection")
+        ?.scrollIntoView({
+            behavior:"smooth",
+            block:"center"
+        });
+}
+
+function changeQuantity(id, change){
+    if(!shoppingCart[id]) return;
+
+    shoppingCart[id].quantity += change;
+
+    if(shoppingCart[id].quantity <= 0){
+        delete shoppingCart[id];
+    }
+
+    renderCart();
+}
+
+function renderCart(){
+
+    const container =
+        document.getElementById("cartItems");
+
+    const countEl =
+        document.getElementById("cartCount");
+
+    const totalEl =
+        document.getElementById("cartTotal");
+
+    const checkout =
+        document.getElementById("checkoutBtn");
+
+    if(!container) return;
+
+    const items =
+        Object.values(shoppingCart);
+
+    let total = 0;
+    let count = 0;
+
+    if(items.length === 0){
+
+        container.innerHTML =
+            '<div class="empty-cart">Keranjang masih kosong.</div>';
+
+    }else{
+
+        container.innerHTML = "";
+
+        items.forEach(item => {
+
+            const subtotal =
+                item.price * item.quantity;
+
+            total += subtotal;
+            count += item.quantity;
+
+            const row =
+                document.createElement("div");
+
+            row.className = "cart-item";
+
+            row.innerHTML = `
+                <div>
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-price">${formatRupiah(item.price)}</div>
+                </div>
+
+                <div class="qty-controls">
+                    <button type="button"
+                        onclick="changeQuantity('${item.id}', -1)">−</button>
+
+                    <strong>${item.quantity}</strong>
+
+                    <button type="button"
+                        onclick="changeQuantity('${item.id}', 1)">+</button>
+                </div>
+
+                <strong>${formatRupiah(subtotal)}</strong>
+            `;
+
+            container.appendChild(row);
+        });
+    }
+
+    countEl.textContent = count;
+    totalEl.textContent = formatRupiah(total);
+    checkout.disabled = items.length === 0;
+}
+
+function renderRecommendedProducts(condition){
+
+    const container =
+        document.getElementById("productRecommendations");
+
+    if(!container) return;
+
+    const recommendation =
+        skinRecommendations[condition];
+
+    container.innerHTML = "";
+
+    if(!recommendation) return;
+
+    recommendation.products.forEach(product => {
+
+        const card =
+            document.createElement("div");
+
+        card.className = "product-card";
+
+        card.innerHTML = `
+            <span class="product-type">${product.type}</span>
+
+            <h4>${product.name}</h4>
+
+            <div class="product-price">
+                ${formatRupiah(product.price)}
+            </div>
+
+            <div class="product-actions">
+
+                <button
+                    type="button"
+                    class="add-cart-btn">
+                    🛒 Keranjang
+                </button>
+
+                <button
+                    type="button"
+                    class="buy-now-btn">
+                    💳 Beli
+                </button>
+
+            </div>
+        `;
+
+        card.querySelector(".add-cart-btn")
+            .addEventListener(
+                "click",
+                () => addToCart(product)
+            );
+
+        card.querySelector(".buy-now-btn")
+            .addEventListener(
+                "click",
+                () => buyNow(product)
+            );
+
+        container.appendChild(card);
+
+    });
+
+}
+
+function addAllRecommendedProducts(condition){
+
+    const recommendation =
+        skinRecommendations[condition];
+
+    if(!recommendation) return;
+
+    recommendation.products.forEach(product => {
+        if(!shoppingCart[product.id]){
+            shoppingCart[product.id] = {
+                ...product,
+                quantity:1
+            };
+        }
+    });
+
+    const cartCondition =
+        document.getElementById("cartCondition");
+
+    if(cartCondition){
+        cartCondition.textContent =
+            "Produk rekomendasi untuk kulit: " + condition;
+    }
+
+    renderCart();
+
+    document.getElementById("cartSection")
+        ?.scrollIntoView({
+            behavior:"smooth",
+            block:"center"
+        });
+
+    const addAllBtn =
+        document.getElementById("addRecommendedBtn");
+
+    if(addAllBtn){
+        addAllBtn.onclick =
+            () => addAllRecommendedProducts(condition);
+    }
+
+}
+
+function showRecommendation(condition){
+
+    const recommendation =
+        skinRecommendations[condition];
+
+    if(!recommendation) return;
+
+    document.getElementById(
+        "recommendationCondition"
+    ).textContent =
+        "Kondisi kulit terdeteksi: " + condition;
+
+    document.getElementById(
+        "recommendationAdvice"
+    ).textContent =
+        recommendation.advice;
+
+    renderRecommendedProducts(
+        condition
+    );
+}
+
+function showDetectedClassification(condition){
+
+    detectedSkinCondition = condition;
+
+    const cartCondition =
+        document.getElementById("cartCondition");
+
+    if(cartCondition){
+        cartCondition.textContent =
+            "Produk rekomendasi untuk kulit: " + condition;
+    }
+
+    const section =
+        document.getElementById(
+            "detectedClassification"
+        );
+
+    if(!section) return;
+
+    section.style.display = "block";
+
+    Object.values(classificationRows)
+        .forEach(id => {
+
+            const row =
+                document.getElementById(id);
+
+            if(row){
+                row.classList.remove("selected");
+            }
+
+        });
+
+    const selectedId =
+        classificationRows[condition];
+
+    const selectedRow =
+        document.getElementById(selectedId);
+
+    if(selectedRow){
+        selectedRow.classList.add("selected");
+    }
+}
+
+const checkoutButton =
+    document.getElementById("checkoutBtn");
+
+if(checkoutButton){
+    checkoutButton.addEventListener("click", async () => {
+
+        if(checkoutProcessing) return;
+
+        const items = Object.values(shoppingCart);
+        if(items.length === 0) return;
+
+        const sellerWhatsApp = getSellerWhatsApp();
+        if(!sellerWhatsApp) return;
+
+        checkoutProcessing = true;
+        checkoutButton.disabled = true;
+        checkoutButton.textContent = "⏳ Menyiapkan Pesanan...";
+
+        try{
+
+            const total = items.reduce(
+                (sum,item) => sum + item.price * item.quantity,
+                0
+            );
+
+            const detail = items
+                .map((item,index) =>
+                    (index + 1) + ". " +
+                    item.name +
+                    " x" + item.quantity +
+                    " = " + formatRupiah(item.price * item.quantity)
+                )
+                .join("\n");
+
+            const productText = items
+                .map(item => item.name + " x" + item.quantity)
+                .join("; ");
+
+            const totalQuantity = items
+                .reduce((sum,item) => sum + item.quantity, 0);
+
+            const customerId = getCustomerId();
+            const orderTime = new Date().toLocaleString("id-ID");
+
+            /*
+             * 1 checkout = 1 riwayat.
+             * Riwayat lama tetap dipertahankan.
+             */
+            const record = await savePurchaseHistory({
+                condition: detectedSkinCondition || "-",
+                products: productText,
+                quantity: totalQuantity,
+                total: formatRupiah(total),
+                status: "Pesanan dikirim ke WhatsApp penjual"
+            });
+
+            /*
+             * Detail pesanan yang dikirim ke WhatsApp penjual.
+             */
+            const whatsappMessage =
+                "🛍️ *PESANAN SMART SKIN FACE*\n\n" +
+                "ID Customer: " + customerId + "\n" +
+                "ID Pesanan: " + record.id + "\n" +
+                "Waktu: " + orderTime + "\n" +
+                "Kondisi kulit: " + (detectedSkinCondition || "-") + "\n\n" +
+                "*Detail Pesanan:*\n" +
+                detail + "\n\n" +
+                "*Total: " + formatRupiah(total) + "*\n\n" +
+                "Mohon konfirmasi ketersediaan dan proses pesanan. Terima kasih.";
+
+            const whatsappUrl =
+                "https://wa.me/" +
+                SELLER_WHATSAPP +
+                "?text=" +
+                encodeURIComponent(whatsappMessage);
+
+            // Lebih kompatibel di HP: langsung navigasi ke WhatsApp.
+            window.location.href = whatsappUrl;
+
+            const message =
+                document.getElementById("purchaseMessage");
+
+            if(message){
+                message.innerHTML =
+                    "✓ Pesanan <b>" + record.id + "</b> telah dicatat. " +
+                    "WhatsApp penjual dibuka dengan detail pesanan.";
+                message.style.display = "block";
+            }
+
+            /*
+             * Keranjang dikosongkan setelah checkout.
+             * Riwayat tetap tersimpan.
+             */
+            Object.keys(shoppingCart).forEach(
+                key => delete shoppingCart[key]
+            );
+
+            renderCart();
+
+        }catch(error){
+
+            console.error("Checkout gagal:", error);
+
+            alert(
+                "Pesanan belum berhasil diproses. " +
+                "Silakan coba lagi."
+            );
+
+        }finally{
+
+            checkoutProcessing = false;
+            checkoutButton.textContent =
+                "📲 Kirim Pesanan ke WhatsApp Penjual";
+
+            renderCart();
+        }
+    });
+}
+
+
+/* =====================================================
+   TAMPILKAN HASIL
+===================================================== */
+
+function showResult(result){
+
+    document.getElementById(
+        "condition"
+    ).textContent =
+        result.condition;
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        result.score + "/100";
+
+    document.getElementById(
+        "confidence"
+    ).textContent =
+        result.confidence + "%";
+
+    document.getElementById(
+        "scoreBar"
+    ).style.width =
+        result.score + "%";
+
+    document.getElementById(
+        "confidenceBar"
+    ).style.width =
+        result.confidence + "%";
+
+    document
+        .querySelectorAll(
+            ".condition-item"
+        )
+        .forEach(item => {
+
+            item.classList.toggle(
+                "active",
+                item.dataset.condition ===
+                result.condition
+            );
+
+        });
+
+    document.getElementById(
+        "response"
+    ).textContent =
+        skinResponses[
+            result.condition
+        ] || "Hasil analisis belum tersedia.";
+
+    showDetectedClassification(
+        result.condition
+    );
+
+    showRecommendation(
+        result.condition
+    );
+
+    const reanalyzeArea =
+        document.getElementById("reanalyzeArea");
+
+    if(reanalyzeArea){
+        reanalyzeArea.style.display = "block";
+    }
+
+
+    document.getElementById(
+        "result"
+    ).style.display =
+        "block";
+
+}
+
+
+
+/* =====================================================
+   ANALISIS KULIT
+===================================================== */
+
+function analyzeSkin(){
+
+    if(!stream){
+
+        statusText.textContent =
+            "🔴 Aktifkan kamera terlebih dahulu.";
+
+        statusText.style.color =
+            "#c62828";
+
+        return;
+
+    }
+
+    if(checking){
+        return;
+    }
+
+    // Reset hasil sebelumnya agar analisis benar-benar dimulai dari awal.
+    const resultSection =
+        document.getElementById("result");
+
+    if(resultSection){
+        resultSection.style.display = "none";
+    }
+
+    const classification =
+        document.getElementById("detectedClassification");
+
+    if(classification){
+        classification.style.display = "none";
+    }
+
+    const reanalyzeArea =
+        document.getElementById("reanalyzeArea");
+
+    if(reanalyzeArea){
+        reanalyzeArea.style.display = "none";
+    }
+
+    const recommendation =
+        document.getElementById("productRecommendations");
+
+    if(recommendation){
+        recommendation.innerHTML = "";
+    }
+
+    checking = true;
+    analysisRequested = true;
+
+    statusText.textContent =
+        "🔎 Mencari wajah untuk analisis...";
+
+    statusText.style.color =
+        "#1677c8";
+
+    startDetectionLoop();
+
+}
+
+
+/* =====================================================
+   EVENT BUTTON
+===================================================== */
+
+document.addEventListener("DOMContentLoaded",()=>{loadPurchaseHistory();const c=document.getElementById("clearHistoryBtn");if(c)c.onclick=clearCloudHistory;});
+
+startBtn.addEventListener(
+    "click",
+    startCamera
+);
+
+
+captureBtn.addEventListener(
+    "click",
+    analyzeSkin
+);
+
+
+stopBtn.addEventListener(
+    "click",
+    stopCamera
+);
+
+
+const reanalyzeBtn =
+    document.getElementById("reanalyzeBtn");
+
+if(reanalyzeBtn){
+
+    reanalyzeBtn.addEventListener(
+        "click",
+        () => {
+
+            if(checking){
+                return;
+            }
+
+            analyzeSkin();
+
+        }
+    );
+
+}
+
+</script>
+
+
+</body>
+
+</html>
